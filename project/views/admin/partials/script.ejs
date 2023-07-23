@@ -1,0 +1,203 @@
+<!-- Required Js -->
+<script src="assets/js/vendor-all.min.js"></script>
+<script src="assets/js/plugins/bootstrap.min.js"></script>
+<script src="assets/js/ripple.js"></script>
+<script src="assets/js/pcoded.min.js"></script>
+<script src="assets/js/menu-setting.min.js"></script>
+
+<!-- Apex Chart -->
+<script src="assets/js/plugins/apexcharts.min.js"></script>
+<!-- custom-chart js -->
+<script src="assets/js/pages/dashboard-main.js"></script>
+<script>
+    $(document).ready(function () {
+        checkCookie();
+
+        // xóa ngay
+        $('#deleteNow').on('click', function (e) {
+            var id = $('#getID').val()
+            var nameModule = '<%=nameModule%>';
+            // xóa hàng
+            $('#id-' + id).remove();
+            // gửi ajax
+            ajax(nameModule, { id }, 'delete')
+        })
+        $('#delete').on('click', function (e) {
+            var id = $('#getID').val()
+            var nameModule = '<%=nameModule%>';
+            // xóa hàng
+            $('#id-' + id).remove();
+            // gửi ajax
+            ajax(nameModule, { id }, 'delete')
+        })
+    });
+
+    function getID(id) {
+        $('#getID').val(id)
+    }
+
+    function getClassId(id) {
+        $('.classId').val(id)
+    }
+
+    function setCookie(cname, cvalue, exdays) {
+        var d = new Date();
+        d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+        var expires = "expires=" + d.toGMTString();
+        document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+    }
+
+    function getCookie(cname) {
+        var name = cname + "=";
+        var decodedCookie = decodeURIComponent(document.cookie);
+        var ca = decodedCookie.split(';');
+        for (var i = 0; i < ca.length; i++) {
+            var c = ca[i];
+            while (c.charAt(0) == ' ') {
+                c = c.substring(1);
+            }
+            if (c.indexOf(name) == 0) {
+                return c.substring(name.length, c.length);
+            }
+        }
+        return "";
+    }
+
+    function checkCookie() {
+        var ticks = getCookie("modelopen");
+        if (ticks != "") {
+            ticks++;
+            setCookie("modelopen", ticks, 1);
+            if (ticks == "2" || ticks == "1" || ticks == "0") {
+                $('#exampleModalCenter').modal();
+            }
+        } else {
+            // user = prompt("Please enter your name:", "");
+            $('#exampleModalCenter').modal();
+            ticks = 1;
+            setCookie("modelopen", ticks, 1);
+        }
+    }
+</script>
+
+<!-- chức năng -->
+<script>
+    function getValue(name) {
+        return $('#' + name).val();
+    }
+
+    function getData(array = []) {
+        var value = '';
+        var data = {}
+        array.forEach(e => {
+            value = getValue(e);
+            // kiểm tra dữ liệu
+            data[e] = value;
+        })
+        return data;
+    }
+
+    function ajax(nameModule = '', data, funct) {
+        $.ajax({
+            url: '/admin/' + nameModule + '/' + funct,
+            type: 'POST',
+            data,
+            success: function (results) {
+                if (funct == 'insert') {
+                    if (results.kq == 1) {
+                        // chuyển trang tự động
+                        window.location.href = '/admin/' + nameModule + '/index';
+                    }
+                    alert(results.msg)
+                }
+                console.log(results)
+            }
+        });
+        return false;
+    }
+
+    function main() {
+        $(document).ready(function () {
+            $('#getForm').on('submit', e => {
+                e.preventDefault();
+                var nameModule = '<%=nameModule%>';
+
+                var array = [];
+
+                if (nameModule == 'user') {
+                    array = ['email', 'phone', 'password', 'role'];
+                }
+                else if (nameModule == 'category') {
+                    array = ['name', 'parentsID'];
+                }
+                else if (nameModule == 'product') {
+                    array = ['name', 'parentsID'];
+                }
+
+                ajax(nameModule, getData(array), 'insert');
+            })
+        })
+    }
+
+    // gọi function main
+    main();
+</script>
+<script>
+    $(document).ready(function () {
+        $('#formUploadFile').on('submit', function (e) {
+            e.preventDefault();
+
+            // 1. khai báo
+            var file = error = '', flag = 1;
+
+            // 2. lấy dữ liệu
+            file = $('#file');
+
+            // alert('ok')
+            //console.log( file.val() ) // lấy value của file
+            // console.log( file[0].files )
+
+            // 3. kiểm tra dữ liệu
+
+            // 3.1 kiểm tra file rỗng
+            // if( file.val() == '' ){
+            //     flag=0;
+            //     error='Vui lòng chọn File';
+            // }
+
+            // 3.2 kiểm tra tên file: 
+
+            // 3.2.1 Ko chứa kí tự đặc biệt: trừ (-, _): regex
+            // 3.2.1 Giới hạn số kí tự của 1 file: 70-100 kí tự
+
+            // 3.3 kiểm tra kích thước file
+            // 3.4 kiểm tra đuôi file
+
+            const id = $('.classId').val();
+
+            // 4. gửi ajax
+            if (flag == 1) {
+                // ok
+                // alert('ok')
+                $.ajax({
+                    url: '/admin/product/uploadFile/' + id,
+                    type: 'POST',
+                    data: new FormData(this),
+
+                    // gắn thêm 2 tham số bắt buộc
+                    processData: false,
+                    contentType: false,
+
+                    success: function (response) {
+                        console.log(response)
+                    }
+                })
+                return false;
+            }
+            else {
+                $('.error_file').text(error)
+            }
+
+        })
+    })
+</script>
